@@ -24,8 +24,14 @@ dependencies {
   implementation 'org.javassist:javassist:3.24.1-GA'
 
   testImplementation 'junit:junit:4.12'
-  //testImplementation 'org.mockito:mockito-core:2.23.17'
-  testImplementation 'org.mockito:mockito-core:2.23.4'
+
+  testImplementation 'org.mockito:mockito-core:2.23.17'
+  testImplementation 'net.bytebuddy:byte-buddy:1.9.7'
+  testImplementation 'net.bytebuddy:byte-buddy-agent:1.9.7'
+  testImplementation 'org.objenesis:objenesis:3.0.1'
+
+  // testImplementation 'org.mockito:mockito-core:2.23.4'
+
   testImplementation 'org.slf4j:slf4j-api:1.7.25'
 }
 
@@ -38,12 +44,12 @@ compileJava {
   }
 }
 
-//javadoc {
-//  doFirst {
-//    options.addStringOption('-module-path', classpath.asPath)
-//    classpath = files() // Clear the classpath. (Using --module-path instead.)
-//  }
-//}
+javadoc {
+  doFirst {
+    options.addStringOption('-module-path', classpath.asPath)
+    classpath = files() // Clear the classpath. (Using --module-path instead.)
+  }
+}
 
 compileTestJava {
   inputs.property("moduleName", moduleName)
@@ -61,61 +67,61 @@ test {
   inputs.property("moduleName", moduleName)
   doFirst {
     jvmArgs = [
-        // '-Dnet.bytebuddy.experimental=true',
-        '--module-path', classpath.asPath,
+        '--module-path', classpath.minus(files('mockito-libs/mockito-core-2.23.17.jar')).asPath,
         '--add-modules', 'ALL-MODULE-PATH',
         '--add-reads', "$moduleName=junit",
         '--patch-module', "$moduleName=" + files(sourceSets.test.java.outputDir).asPath,
 
         // still messy, just trying to open and export everything
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.api=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.frontend=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.blob=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.filesystem=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.configuration=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.configuration.credentials=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.http=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.hash=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.cache=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.image=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.image.json=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.tar=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.docker=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.docker.json=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.registry=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.registry.credentials=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.global=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.json=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.builder=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.builder.steps=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.event=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.event.events=junit,org.mockito',
-        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.event.progress=junit,org.mockito',
+        /*
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.api=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.frontend=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.blob=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.filesystem=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.configuration=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.configuration.credentials=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.http=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.hash=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.cache=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.image=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.image.json=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.tar=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.docker=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.docker.json=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.registry=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.registry.credentials=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.global=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.json=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.builder=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.builder.steps=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.event=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.event.events=junit,org.mockito,ALL-UNNAMED',
+        '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.event.progress=junit,org.mockito,ALL-UNNAMED',
 
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.api=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.frontend=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.blob=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.configuration=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.configuration.credentials=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.http=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.hash=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.cache=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.image=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.image.json=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.tar=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.docker=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.docker.json=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.registry=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.registry.credentials=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.global=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.json=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.builder=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.builder.steps=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.event=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.event.events=junit,org.mockito',
-        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.event.progress=junit,org.mockito',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.api=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.frontend=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.blob=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.configuration=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.configuration.credentials=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.http=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.hash=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.cache=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.image=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.image.json=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.tar=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.docker=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.docker.json=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.registry=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.registry.credentials=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.global=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.json=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.builder=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.builder.steps=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.event=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.event.events=junit,org.mockito,ALL-UNNAMED',
+        '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.event.progress=junit,org.mockito,ALL-UNNAMED',
 
         // for the com.fasterxml.jackson.databind module
         '--add-exports', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.registry.credentials.json=com.fasterxml.jackson.databind',
@@ -126,6 +132,7 @@ test {
         '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.json=com.fasterxml.jackson.databind',
         '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.registry.credentials.json=com.fasterxml.jackson.databind',
         '--add-opens', 'com.google.cloud.tools.jib/com.google.cloud.tools.jib.registry.json=com.fasterxml.jackson.databind',
+        */
     ]
 
     // With the new resource encapsulation rules with Java modules,
@@ -135,7 +142,8 @@ test {
     // resource output directory as a simple workaround. (If we did not have "getResource()", we
     // would clear the classpath instead.) Should reconsider this when the Gradle test runner is
     // fully modularized or we find a better solution.
-    classpath = files(sourceSets.test.output.resourcesDir)
+    classpath = files(sourceSets.test.output.resourcesDir,
+        'mockito-libs/mockito-core-2.23.17.jar')
   }
 }
 
