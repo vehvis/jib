@@ -10,7 +10,7 @@ compileJava.options.encoding = 'UTF-8'
 
 repositories {
   flatDir {
-    dirs 'mockito-libs' // to load mockito 2.23.17 built locally
+    dirs 'mockito-libs' // to load Mockito 2.23.17 built locally from source
   }
   mavenCentral()
 }
@@ -25,7 +25,11 @@ dependencies {
 
   testImplementation 'junit:junit:4.12'
 
+  // 2.23.17 manually compiled from source. The JAR is at
+  // mockito-libs/mockito-core-2.23.17.jar.
   testImplementation 'org.mockito:mockito-core:2.23.17'
+  // I had to add these three when using mockito as an unnamed module
+  // https://github.com/mockito/mockito/issues/1483#issuecomment-454889589
   testImplementation 'net.bytebuddy:byte-buddy:1.9.7'
   testImplementation 'net.bytebuddy:byte-buddy-agent:1.9.7'
   testImplementation 'org.objenesis:objenesis:3.0.1'
@@ -142,8 +146,7 @@ test {
     // resource output directory as a simple workaround. (If we did not have "getResource()", we
     // would clear the classpath instead.) Should reconsider this when the Gradle test runner is
     // fully modularized or we find a better solution.
-    classpath = files(sourceSets.test.output.resourcesDir,
-        'mockito-libs/mockito-core-2.23.17.jar')
+    classpath = files(sourceSets.test.output.resourcesDir, 'mockito-libs/mockito-core-2.23.17.jar')
   }
 }
 
